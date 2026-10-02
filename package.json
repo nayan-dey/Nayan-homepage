@@ -1,33 +1,25 @@
 {
-  "name": "craftzdog-homepage",
-  "version": "1.0.0",
-  "description": "Takuya's website",
+  "name": "nayan-portfolio",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
-    "build": "next build",
-    "start": "next start",
-    "prettier": "prettier --write .",
-    "lint": "next lint"
+    "dev": "vite --host 0.0.0.0 --port 5173 --strictPort",
+    "build": "tsc --noEmit && vite build && vite build --ssr src/entry-server.tsx --outDir .ssr && node scripts/prerender.mjs",
+    "preview": "vite preview --host 0.0.0.0 --port 5173 --strictPort",
+    "check": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "Takuya Matsuyama",
-  "license": "MIT",
   "dependencies": {
-    "@chakra-ui/icons": "^2.1.1",
-    "@chakra-ui/react": "^2.8.1",
-    "@emotion/react": "^11.11.1",
-    "@emotion/styled": "^11.11.0",
-    "@vercel/analytics": "^1.1.1",
-    "framer-motion": "^10.16.4",
-    "next": "^13.5.6",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-icons": "^4.11.0",
-    "three": "^0.157.0"
+    "@solidjs/web": "2.0.0-rc.13",
+    "@stylexjs/stylex": "0.19.1",
+    "solid-js": "2.0.0-rc.13"
   },
   "devDependencies": {
-    "eslint": "^8.52.0",
-    "eslint-config-next": "^13.5.6",
-    "prettier": "^3.0.3"
+    "@fontsource/poppins": "^5.3.0",
+    "@solidjs/vite-plugin": "3.0.0-next.47",
+    "@stylexjs/unplugin": "0.19.1",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.0"
   }
 }

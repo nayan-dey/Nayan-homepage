@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#faf8fd" />
+    <title>Nayan Dey · Founding engineer & product builder</title>
+    <meta
+      name="description"
+      content="Founding engineer at Safeguard. I build AI-native products, autonomous agents, security systems, and thoughtful mobile experiences from the ground up."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link
+      rel="preload"
+      href="/fonts/poppins-latin-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/poppins-latin-600.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/poppins-latin-500.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="canonical" href="https://nayan-homepage.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Nayan Dey · Engineer" />
+    <meta
+      property="og:description"
+      content="Founding engineer at Safeguard. Building AI-native products, end to end."
+    />
+    <meta property="og:url" content="https://nayan-homepage.vercel.app/" />
+    <meta
+      property="og:image"
+      content="https://nayan-homepage.vercel.app/social-card.png"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@NayanJpg" />
+    <script>
+      let dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      try {
+        const preference = localStorage.getItem("nayan-theme");
+        if (preference === "dark" || preference === "light") {
+          dark = preference === "dark";
+        }
+      } catch {}
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      document.querySelector('meta[name="theme-color"]').content = dark
+        ? "#120d1d"
+        : "#faf8fd";
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Nayan Dey",
+        "jobTitle": "Founding Engineer",
+        "url": "https://nayan-homepage.vercel.app",
+        "email": "nayande.work@gmail.com",
+        "worksFor": {
+          "@type": "Organization",
+          "name": "Safeguard",
+          "url": "https://safeguard.sh"
+        },
+        "sameAs": [
+          "https://github.com/nayan-dey",
+          "https://www.linkedin.com/in/nayan-dey-sf",
+          "https://x.com/NayanJpg",
+          "https://www.instagram.com/_nayan.dey_/"
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>
