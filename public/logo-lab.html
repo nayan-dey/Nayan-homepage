@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nayan — Identity 03, hover lab</title>
+<style>
+  @font-face {
+    font-family: "Geist";
+    src: url("fonts/geist-latin.woff2") format("woff2");
+    font-weight: 100 900;
+    font-display: swap;
+  }
+  :root {
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur: 640ms;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Inter", "Geist", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "cv11";
+    letter-spacing: -0.01em;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 760px) { body { grid-template-columns: 1fr; } }
+
+  .panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    padding: 72px 32px;
+    min-height: 100vh;
+  }
+  .panel.short { min-height: 70vh; }
+  .dark  { background: #101113; color: #ededef; --ink: #ededef; --muted: #80838b; --accent: #8ea2ff; --ring: rgba(255,255,255,0.08); --icon-bg: linear-gradient(180deg, #24262b, #17181b); }
+  .light { background: #f6f5f2; color: #1c1b22; --ink: #1c1b22; --muted: #68677a; --accent: #5a5fcf; --ring: rgba(38,34,60,0.10); --icon-bg: #ffffff; }
+
+  .label { position: absolute; top: 24px; left: 28px; font-size: 13px; color: var(--muted); }
+  .label b { color: var(--ink); font-weight: 600; }
+  .hint  { position: absolute; bottom: 24px; left: 28px; right: 28px; font-size: 13px; color: var(--muted); }
+
+  .logo { cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; }
+  .logo:focus-visible { outline: 2px solid var(--accent); outline-offset: 12px; border-radius: 8px; }
+
+  .wordmark { width: min(560px, 82vw); display: block; }
+  .wordmark svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+  /* Symbol tile */
+  .symbol {
+    width: 168px; height: 168px; border-radius: 38px;
+    display: grid; place-items: center;
+    background: var(--icon-bg);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px var(--ring), 0 14px 36px rgba(16,17,19,0.14);
+    transition: transform 320ms var(--ease);
+  }
+  .symbol svg { width: 104px; height: 104px; display: block; overflow: visible; }
+  .symbol:active { transform: scale(0.97); }
+
+  /* Every moving part pivots on its own box centre. */
+  .bar, .l { transform-box: fill-box; transform-origin: center; will-change: transform; }
+
+  /* 01 Swing: the N's bar turns a half turn and lands on itself. */
+  .bar { transition: transform var(--dur) var(--ease); }
+  .axis { opacity: 0; transition: opacity 360ms var(--ease); }
+  .on .bar.cw, .on .bar.single { transform: rotate(180deg); }
+  .on .bar.ccw { transform: rotate(-180deg); }
+  .on .axis { opacity: 1; }
+
+  .l { transform: translateX(var(--final)); }
+
+  /* 02 Ripple: a small lift that travels from the Y outward, and back in the mirrored order. */
+  .ripple .l { transition: transform 420ms var(--ease); transition-delay: calc(var(--out) * 70ms); }
+  .ripple.on .l { transform: translateX(var(--final)) translateY(-7px); transition-delay: calc(var(--in) * 70ms); }
+
+  /* 03 One N becomes NAYAN: both N's rest on the same spot; on hover they part and A Y A step in between. */
+  .expand .l {
+    transition: transform 720ms var(--ease), opacity 360ms var(--ease);
+    transition-delay: calc(var(--k) * 60ms), calc(var(--k) * 60ms);
+    transform: translateX(var(--rest));
+  }
+  .expand .l.mid { opacity: 0; }
+  .expand.on .l { transform: translateX(var(--final)); }
+  .expand.on .l.mid { opacity: 1; }
+  .expand .axis { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar, .axis, .symbol, .l { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 01 Swing -->
+<section class="panel dark">
+  <div class="label"><b>01 Swing</b> · dark</div>
+  <div class="logo symbol" tabindex="0" aria-label="Nayan symbol">
+    <svg viewBox="-9 0 100 100" fill="var(--ink)" aria-hidden="true">
+      <polygon points="0,6.976 20,41.459 20,100 0,100"/>
+      <polygon points="82,93.024 62,58.541 62,0 82,0"/>
+      <polygon class="bar single" points="0,0 24,0 82,100 58,100"/>
+    </svg>
+  </div>
+  <div class="logo wordmark swing" data-mark tabindex="0" aria-label="Nayan wordmark"></div>
+  <div class="hint">Hover, tap or focus. The bar swings a half turn and lands exactly where it began.</div>
+</section>
+
+<section class="panel light">
+  <div class="label"><b>01 Swing</b> · light</div>
+  <div class="logo symbol" tabindex="0" aria-label="Nayan symbol">
+    <svg viewBox="-9 0 100 100" fill="var(--ink)" aria-hidden="true">
+      <polygon points="0,6.976 20,41.459 20,100 0,100"/>
+      <polygon points="82,93.024 62,58.541 62,0 82,0"/>
+      <polygon class="bar single" points="0,0 24,0 82,100 58,100" fill="var(--accent)"/>
+    </svg>
+  </div>
+  <div class="logo wordmark swing" data-mark tabindex="0" aria-label="Nayan wordmark"></div>
+  <div class="hint">Every letter returns to itself: A, Y and A survive a mirror, the two N's survive a half turn.</div>
+</section>
+
+<!-- 02 Ripple -->
+<section class="panel dark short">
+  <div class="label"><b>02 Ripple</b> · dark</div>
+  <div class="logo wordmark ripple" data-mark tabindex="0" aria-label="Nayan wordmark"></div>
+  <div class="hint">A small lift that travels from the Y outward, then settles back from the outside in. The stagger itself is a palindrome.</div>
+</section>
+
+<section class="panel light short">
+  <div class="label"><b>02 Ripple</b> · light</div>
+  <div class="logo wordmark ripple" data-mark tabindex="0" aria-label="Nayan wordmark"></div>
+  <div class="hint">Quiet enough for a header: 7px of lift, 420 ms, no colour change.</div>
+</section>
+
+<!-- 03 One N becomes NAYAN -->
+<section class="panel dark short">
+  <div class="label"><b>03 One N to NAYAN</b> · dark</div>
+  <div class="logo wordmark expand" data-mark tabindex="0" aria-label="Nayan wordmark"></div>
+  <div class="hint">At rest both N's sit on the same spot, so you see one N. On hover they part and A, Y, A step in between. Leave, and the word folds back into one N.</div>
+</section>
+
+<section class="panel light short">
+  <div class="label"><b>03 One N to NAYAN</b> · light</div>
+  <div class="logo wordmark expand" data-mark tabindex="0" aria-label="Nayan wordmark"></div>
+  <div class="hint">Works as a site header: the N is the logo, the name appears on hover.</div>
+</section>
+
+<script>
+  // One source of truth for the wordmark. Each letter is a group with its own CSS variables:
+  // --final: x position in the word; --rest: x that puts the letter on the mirror axis (205);
+  // --in / --out: ripple order from the Y outward and back; --k: expand stagger.
+  const N = (cls) => `
+    <polygon points="0,6.976 20,41.459 20,100 0,100"/>
+    <polygon points="82,93.024 62,58.541 62,0 82,0"/>
+    <polygon class="bar ${cls}" points="0,0 24,0 82,100 58,100"/>`;
+  const A = `<polygon points="0,100 36,0 58,0 94,100 71,100 47,33.333 23,100"/>`;
+  const Y = `<polygon points="0,0 24,0 47,34.811 70,0 94,0 57,56 57,100 37,100 37,56"/>`;
+  const letters = [
+    { body: N("cw"),  final: 0,   rest: 164, inn: 2, k: 0, mid: false },
+    { body: A,        final: 87,  rest: 158, inn: 1, k: 1, mid: true  },
+    { body: Y,        final: 158, rest: 158, inn: 0, k: 2, mid: true  },
+    { body: A,        final: 229, rest: 158, inn: 1, k: 1, mid: true  },
+    { body: N("ccw"), final: 328, rest: 164, inn: 2, k: 0, mid: false },
+  ];
+  const svg = `
+    <svg viewBox="0 0 410 100" fill="var(--ink)" aria-hidden="true">
+      <line class="axis" x1="205" y1="-22" x2="205" y2="122" stroke="var(--accent)" stroke-width="0.8" stroke-dasharray="2 2.5"/>
+      ${letters.map(l => `<g class="l${l.mid ? " mid" : ""}" style="--final:${l.final}px;--rest:${l.rest}px;--in:${l.inn};--out:${2 - l.inn};--k:${l.k}">${l.body}</g>`).join("")}
+    </svg>`;
+  for (const el of document.querySelectorAll("[data-mark]")) el.innerHTML = svg;
+
+  // Hover, touch and keyboard all drive one state: the "on" class.
+  const canHover = matchMedia("(hover: hover)").matches;
+  for (const el of document.querySelectorAll(".logo")) {
+    if (canHover) {
+      el.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") el.classList.add("on"); });
+      el.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") el.classList.remove("on"); });
+    }
+    el.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") el.classList.toggle("on"); });
+    el.addEventListener("focus", () => el.classList.add("on"));
+    el.addEventListener("blur", () => el.classList.remove("on"));
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.classList.toggle("on"); } });
+  }
+</script>
+</body>
+</html>

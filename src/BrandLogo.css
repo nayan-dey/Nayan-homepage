@@ -1,0 +1,51 @@
+.brand-logo {
+  display: block;
+  width: 98.4px;
+  height: 24px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* Every letter rests on the mirror axis; the word grows outward from there. */
+.brand-l {
+  transform: translateX(var(--rest));
+  transition:
+    transform 760ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--kc) * 80ms);
+  will-change: transform;
+}
+.brand-mid {
+  opacity: 0;
+}
+
+.brand-logo[data-open] .brand-l {
+  transform: translateX(var(--final));
+  transition-delay: calc(var(--ko) * 80ms);
+}
+.brand-logo[data-open] .brand-mid {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wordmark:hover .brand-l,
+  .wordmark:focus-visible .brand-l {
+    transform: translateX(var(--final));
+    transition-delay: calc(var(--ko) * 80ms);
+  }
+  .wordmark:hover .brand-mid,
+  .wordmark:focus-visible .brand-mid {
+    opacity: 1;
+  }
+}
+
+/* Without motion the name is simply always there. */
+@media (prefers-reduced-motion: reduce) {
+  .brand-l {
+    transition: none;
+    transform: translateX(var(--final));
+  }
+  .brand-mid {
+    opacity: 1;
+  }
+}

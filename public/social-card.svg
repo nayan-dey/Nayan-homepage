@@ -1,14 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#f5f1e9"/>
-  <rect x="70" y="64" width="64" height="64" rx="20" fill="#eedfd4"/>
-  <text x="84" y="109" font-family="sans-serif" font-size="35" font-weight="600" fill="#475a3d">n.</text>
-  <text x="72" y="269" font-family="sans-serif" font-size="82" font-weight="600" letter-spacing="-4" fill="#343b31">Nayan Dey.</text>
-  <text x="76" y="342" font-family="sans-serif" font-size="31" fill="#343b31">From idea to production.</text>
-  <text x="76" y="394" font-family="sans-serif" font-size="24" fill="#60665b">AI-native products, interfaces, and infrastructure.</text>
-  <rect x="76" y="464" width="204" height="53" rx="14" fill="#e4ebde"/>
-  <text x="103" y="498" font-family="sans-serif" font-size="23" fill="#475a3d">AI &amp; agents</text>
-  <rect x="294" y="464" width="160" height="53" rx="14" fill="#eedfd4"/>
-  <text x="326" y="498" font-family="sans-serif" font-size="23" fill="#775548">Product</text>
-  <rect x="468" y="464" width="152" height="53" rx="14" fill="#eedfdd"/>
-  <text x="500" y="498" font-family="sans-serif" font-size="23" fill="#805854">Mobile</text>
+  <rect width="1200" height="630" fill="#101113"/>
+  <rect x="100" y="100" width="56" height="56" rx="14" fill="#1d1f23" stroke="#ffffff" stroke-opacity=".12"/>
+  <path d="M117.5 141.5V117h5.25l10.5 14.9V117h5.25v24.5h-5.25L122.75 126.6v14.9Z" fill="#ededef"/>
+  <text x="100" y="316" font-family="Geist, Inter, Helvetica, Arial, sans-serif" font-size="72" font-weight="600" letter-spacing="-1.5" fill="#ededef">Nayan Dey</text>
+  <text x="100" y="374" font-family="Geist, Inter, Helvetica, Arial, sans-serif" font-size="32" fill="#b9bbc1">Founding engineer at Safeguard</text>
+  <text x="100" y="440" font-family="Geist, Inter, Helvetica, Arial, sans-serif" font-size="28" fill="#80838b">Agent runtime, MCP and ACP, sandboxes, and the apps around them.</text>
+  <line x1="100" y1="500" x2="1100" y2="500" stroke="#ffffff" stroke-opacity=".08"/>
+  <text x="100" y="545" font-family="Geist, Inter, Helvetica, Arial, sans-serif" font-size="22" fill="#80838b">nayan-homepage.vercel.app</text>
 </svg>

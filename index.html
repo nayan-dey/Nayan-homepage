@@ -6,41 +6,43 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#faf8fd" />
-    <title>Nayan Dey · Founding engineer & product builder</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#101113" />
+    <script>
+      // Runs before paint: pick the theme (saved choice, else the OS) and the view from the
+      // URL hash, so the first frame is already right and nothing flashes.
+      (function () {
+        var h = document.documentElement, t = null;
+        try { t = localStorage.getItem("theme"); } catch (e) {}
+        if (t !== "light" && t !== "dark")
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        h.dataset.theme = t;
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.content = t === "light" ? "#f5e9dc" : "#101113";
+        var v = location.hash.replace(/^#\/?/, "");
+        h.dataset.view = /^(work|about|contact)$/.test(v) ? v : "home";
+      })();
+    </script>
+    <title>Nayan Dey · Founding engineer at Safeguard</title>
     <meta
       name="description"
-      content="Founding engineer at Safeguard. I build AI-native products, autonomous agents, security systems, and thoughtful mobile experiences from the ground up."
+      content="Nayan Dey, founding engineer at Safeguard. Building agent runtimes, tool integrations and apps across web, desktop and mobile with Go, Python and TypeScript."
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link
       rel="preload"
-      href="/fonts/poppins-latin-400.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/poppins-latin-600.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/poppins-latin-500.woff2"
+      href="/fonts/geist-latin.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link rel="canonical" href="https://nayan-homepage.vercel.app/" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Nayan Dey · Engineer" />
+    <meta property="og:title" content="Nayan Dey · Founding engineer at Safeguard" />
     <meta
       property="og:description"
-      content="Founding engineer at Safeguard. Building AI-native products, end to end."
+      content="Building agent runtimes, tool integrations and apps across web, desktop and mobile."
     />
     <meta property="og:url" content="https://nayan-homepage.vercel.app/" />
     <meta
@@ -49,19 +51,6 @@
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@NayanJpg" />
-    <script>
-      let dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      try {
-        const preference = localStorage.getItem("nayan-theme");
-        if (preference === "dark" || preference === "light") {
-          dark = preference === "dark";
-        }
-      } catch {}
-      document.documentElement.dataset.theme = dark ? "dark" : "light";
-      document.querySelector('meta[name="theme-color"]').content = dark
-        ? "#120d1d"
-        : "#faf8fd";
-    </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -77,9 +66,7 @@
         },
         "sameAs": [
           "https://github.com/nayan-dey",
-          "https://www.linkedin.com/in/nayan-dey-sf",
-          "https://x.com/NayanJpg",
-          "https://www.instagram.com/_nayan.dey_/"
+          "https://x.com/NayanJpg"
         ]
       }
     </script>
