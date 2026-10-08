@@ -1,6 +1,6 @@
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import { about, coreSkills, intro, person, previousWork, safeguard, socials } from "./content";
-import { MoonIcon, PlatformIcon, SunIcon, type PlatformIconName } from "./Icons";
+import { CheckIcon, CopyIcon, MoonIcon, PlatformIcon, SunIcon, type PlatformIconName } from "./Icons";
 import { SocialIcon } from "./SocialIcons";
 import BrandLogo from "./BrandLogo";
 
@@ -616,15 +616,16 @@ export default function App() {
               </a>
               <button
                 type="button"
-                class="btn btn-secondary copy"
+                class="btn btn-ghost copy"
                 data-state={copyState()}
                 onClick={copyEmail}
                 disabled={copyState() === "copying"}
+                aria-label={copyState() === "copied" ? "Email copied" : "Copy email address"}
+                title="Copy email address"
               >
-                <span class="copy-labels">
-                  <span>Copy</span>
-                  <span>Copying</span>
-                  <span>Copied</span>
+                <span class="copy-icon">
+                  <CopyIcon />
+                  <CheckIcon />
                 </span>
               </button>
             </div>

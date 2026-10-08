@@ -27,10 +27,8 @@
   --accent: #8ea2ff;
   --accent-soft: rgba(142, 162, 255, 0.14);
   --selection: rgba(142, 162, 255, 0.3);
-  --primary-bg: var(--ink);
-  --primary-bg-hover: #ffffff;
-  --primary-ink: var(--bg);
-  --primary-highlight: rgba(255, 255, 255, 0.55);
+  --surface-hover: #2b2e34;
+  --success: #5fc48a;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.35), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
   --radius: 10px;
@@ -62,10 +60,8 @@ html[data-theme="light"] {
   --accent: #8c5a7e;
   --accent-soft: rgba(140, 90, 126, 0.14);
   --selection: rgba(140, 90, 126, 0.24);
-  --primary-bg: #2a2320;
-  --primary-bg-hover: #1a1512;
-  --primary-ink: #fbf3ea;
-  --primary-highlight: rgba(255, 240, 228, 0.18);
+  --surface-hover: #e8d6c4;
+  --success: #3c8c5c;
   --shadow-sm: 0 1px 2px rgba(74, 48, 28, 0.1);
   --shadow-md: 0 2px 6px rgba(74, 48, 28, 0.1), 0 8px 24px -12px rgba(74, 48, 28, 0.22);
 }
@@ -346,11 +342,7 @@ html[data-view="contact"] .nav:not(.is-ready) #tab-contact {
   position: absolute;
   inset: 6px;
   border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  box-shadow:
-    inset 0 1px 0 var(--highlight),
-    0 0 0 1px var(--line-strong),
-    var(--shadow-sm);
+  background: transparent;
   transition: background-color var(--t-fast) var(--ease-out);
 }
 .theme:active {
@@ -382,15 +374,17 @@ html[data-theme="light"] .theme-moon {
   filter: blur(4px);
 }
 
-/* Buttons. Visible height 32px; a centered pseudo-element extends the hit area to 44px. */
+/* Buttons. Flat, like the rest of the page: no fills darker than the canvas, no raised
+   shadows. Visible height 30px; a centered pseudo-element extends the hit area to 44px.
+   Primary is a tonal surface fill, secondary is a hairline outline, ghost is text only. */
 .btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 12px;
+  height: 30px;
+  padding: 0 11px;
   border-radius: var(--radius-sm);
   font-size: 13.5px;
   font-weight: 500;
@@ -414,34 +408,28 @@ html[data-theme="light"] .theme-moon {
 .btn:active {
   scale: 0.96;
 }
+.btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
 .btn-sm {
   height: 28px;
   padding: 0 10px;
   font-size: 13px;
 }
 .btn-primary {
-  background: var(--primary-bg);
-  color: var(--primary-ink);
-  box-shadow:
-    inset 0 1px 0 var(--primary-highlight),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.06),
-    var(--shadow-sm);
-}
-.btn-primary:active {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 0 rgba(0, 0, 0, 0);
+  background: var(--surface-3);
+  color: var(--ink);
 }
 .btn-secondary {
-  background: var(--surface-2);
-  color: var(--ink);
-  box-shadow:
-    inset 0 1px 0 var(--highlight),
-    0 0 0 1px var(--line-strong),
-    var(--shadow-sm);
+  background: transparent;
+  color: var(--ink-2);
 }
-.btn-secondary:active {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.02),
-    0 0 0 1px var(--line-strong);
+.btn-ghost {
+  padding: 0 8px;
+  background: transparent;
+  color: var(--muted);
 }
 .btn:disabled {
   cursor: default;
@@ -791,14 +779,14 @@ html[data-view] .panel + .panel {
 }
 
 /* Contact: a plain address row, not a field. The full address is a 15px ink mailto link
-   with a centered 44px hit area; Copy is the standard 32px secondary button beside it. The
+   with a centered 44px hit area; Copy is an icon-only ghost button beside it that turns into a green tick. The
    row wraps if the address and button cannot share a line, and the button's three labels
    are stacked in one grid cell so the width never changes between states. */
 .address {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  column-gap: 14px;
+  column-gap: 4px;
   row-gap: 16px; /* if the row wraps, the two 44px hit areas still do not overlap */
   min-height: var(--tap);
   margin-top: -6px;
@@ -819,26 +807,35 @@ html[data-view] .panel + .panel {
   height: var(--tap);
   translate: -50% -50%;
 }
-.copy-labels {
+.copy {
+  width: 30px;
+  padding: 0;
+  color: var(--muted);
+}
+.copy-icon {
   display: grid;
 }
-.copy-labels > span {
+.copy-icon > svg {
   grid-area: 1 / 1;
-  visibility: hidden;
+  width: 15px;
+  height: 15px;
+  transition: opacity var(--t-fast) var(--ease), scale 200ms var(--ease-out);
+}
+.copy-icon > svg:nth-child(2) {
   opacity: 0;
-  transition:
-    opacity var(--t-fast) var(--ease),
-    visibility var(--t-fast);
+  scale: 0.6;
 }
-.copy[data-state="idle"] > .copy-labels > span:nth-child(1),
-.copy[data-state="failed"] > .copy-labels > span:nth-child(1),
-.copy[data-state="copying"] > .copy-labels > span:nth-child(2),
-.copy[data-state="copied"] > .copy-labels > span:nth-child(3) {
-  visibility: visible;
+.copy[data-state="copied"] > .copy-icon > svg:nth-child(1) {
+  opacity: 0;
+  scale: 0.6;
+}
+.copy[data-state="copied"] > .copy-icon > svg:nth-child(2) {
   opacity: 1;
+  scale: 1;
 }
-.copy[data-state="copied"] {
-  color: var(--accent);
+.copy[data-state="copied"],
+.copy[data-state="copied"]:disabled {
+  color: var(--success);
 }
 .copy-feedback {
   margin-top: 4px;
@@ -1025,13 +1022,18 @@ html[data-view] .panel + .panel {
     color: var(--ink);
   }
   .theme:hover::before {
-    background: var(--surface-3);
+    background: var(--surface-2);
   }
   .btn-primary:hover {
-    background: var(--primary-bg-hover);
+    background: var(--surface-hover);
   }
   .btn-secondary:hover {
-    background: var(--surface-3);
+    color: var(--ink);
+    background: var(--surface-2);
+  }
+  .btn-ghost:hover {
+    color: var(--ink);
+    background: var(--surface-2);
   }
   .social a:hover {
     color: var(--ink);
