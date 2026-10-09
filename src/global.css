@@ -1421,11 +1421,11 @@ html[data-view] .panel + .panel {
 .swipe-hint-pill {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  height: 24px;
-  padding: 0 9px 0 5px;
-  border-radius: 12px;
-  font-size: 11.5px;
+  gap: 3px;
+  height: 28px;
+  padding: 0 11px 0 7px;
+  border-radius: 14px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.02em;
   color: var(--ink-2);
@@ -1439,7 +1439,7 @@ html[data-view] .panel + .panel {
   rotate: 180deg;
   color: var(--muted);
 }
-@media (hover: none) and (pointer: coarse) {
+@media (pointer: coarse), (any-pointer: coarse) {
   html:not([data-swiped]) .swipe-hint {
     display: block;
   }

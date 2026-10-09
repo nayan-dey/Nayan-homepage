@@ -72,23 +72,23 @@ export function PlatformIcon(props: { name: PlatformIconName }) {
   return <svg {...base}>{platformPaths[props.name]}</svg>;
 }
 
+/* Theme glyphs, drawn soft: a filled sun disc with short round rays, and a filled crescent
+   with no corners. Both 16px on a 16 grid. */
 export function SunIcon() {
   return (
-    <svg {...base} width={16} height={16}>
-      <circle cx="8" cy="8" r="3" />
-      <path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.15 1.15M11.45 11.45l1.15 1.15M3.4 12.6l1.15-1.15M11.45 4.55l1.15-1.15" />
+    <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+      <circle cx="8" cy="8" r="2.9" fill="currentColor" stroke="none" />
+      <path d="M8 1.9v1.3M8 12.8v1.3M1.9 8h1.3M12.8 8h1.3M3.7 3.7l.9.9M11.4 11.4l.9.9M3.7 12.3l.9-.9M11.4 4.6l.9-.9" />
     </svg>
   );
 }
-
 export function MoonIcon() {
   return (
-    <svg {...base} width={16} height={16}>
-      <path d="M13.6 9.9A6 6 0 1 1 6.1 2.4a4.75 4.75 0 0 0 7.5 7.5Z" />
+    <svg viewBox="0 0 16 16" width={16} height={16} fill="currentColor" aria-hidden="true">
+      <path d="M8.6 1.9a6.2 6.2 0 1 0 5.5 8.9 5 5 0 0 1-5.5-8.9Z" />
     </svg>
   );
 }
-
 export function CopyIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

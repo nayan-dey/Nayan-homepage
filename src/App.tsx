@@ -283,7 +283,7 @@ export default function App() {
       }
       history.scrollRestoration = "auto";
       try {
-        if (localStorage.getItem("swiped")) document.documentElement.dataset.swiped = "";
+        if (sessionStorage.getItem("swiped")) document.documentElement.dataset.swiped = "";
       } catch {
         /* storage unavailable */
       }
@@ -503,7 +503,7 @@ export default function App() {
       const target = d.target;
       document.documentElement.dataset.swiped = "";
       try {
-        localStorage.setItem("swiped", "1");
+        sessionStorage.setItem("swiped", "1");
       } catch {
         /* storage unavailable */
       }
