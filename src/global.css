@@ -1565,6 +1565,45 @@ html[data-view] .panel + .panel {
 }
 
 
+/* Theme switch: the page cross-fades through a soft blur. The old snapshot blurs and fades
+   out while the new one arrives sharp, over 360ms with the site's ease-out. The theme
+   toggle's own icons are excluded so their cross-fade stays crisp. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 360ms;
+  animation-timing-function: var(--ease-out);
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  animation-name: theme-out;
+}
+::view-transition-new(root) {
+  animation-name: theme-in;
+}
+@keyframes theme-out {
+  to {
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+@keyframes theme-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+.theme {
+  view-transition-name: theme-toggle;
+}
+::view-transition-old(theme-toggle),
+::view-transition-new(theme-toggle) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(theme-toggle) {
+  opacity: 0;
+}
+
 /* Motion and contrast preferences */
 @media (prefers-reduced-motion: reduce) {
   html {

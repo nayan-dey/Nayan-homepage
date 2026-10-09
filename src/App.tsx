@@ -241,16 +241,26 @@ export default function App() {
   const systemTheme = (): Theme =>
     matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 
-  function applyTheme(next: Theme) {
-    const style = document.createElement("style");
-    style.textContent = "*:not(.keep-motion),*::before,*::after{transition:none!important}";
-    document.head.append(style);
-    document.documentElement.dataset.theme = next;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLOR[next]);
-    currentTheme = next;
-    setTheme(next);
-    void document.body.offsetHeight;
-    requestAnimationFrame(() => requestAnimationFrame(() => style.remove()));
+  // Colours snap (no per-property transitions, which smear), and the whole page cross-fades
+  // through a soft blur with a view transition: the old look blurs out as the new sharpens in.
+  function applyTheme(next: Theme, animate = true) {
+    const swap = () => {
+      const style = document.createElement("style");
+      style.textContent = "*:not(.keep-motion),*::before,*::after{transition:none!important}";
+      document.head.append(style);
+      document.documentElement.dataset.theme = next;
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLOR[next]);
+      currentTheme = next;
+      setTheme(next);
+      void document.body.offsetHeight;
+      requestAnimationFrame(() => requestAnimationFrame(() => style.remove()));
+    };
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
+    if (!animate || reducedMotion() || !doc.startViewTransition) return swap();
+    document.documentElement.dataset.themeSwap = "";
+    doc
+      .startViewTransition(swap)
+      .finished.finally(() => delete document.documentElement.dataset.themeSwap);
   }
 
   function toggleTheme() {
@@ -291,7 +301,7 @@ export default function App() {
       const onPop = () => select(viewFromHash(location.hash), { push: false });
       const scheme = matchMedia("(prefers-color-scheme: dark)");
       const onScheme = () => {
-        if (!themeOverride) applyTheme(systemTheme());
+        if (!themeOverride) applyTheme(systemTheme(), false);
       };
       window.addEventListener("popstate", onPop);
       scheme.addEventListener("change", onScheme);
