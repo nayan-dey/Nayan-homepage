@@ -1,6 +1,9 @@
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
-import { about, coreSkills, intro, person, previousWork, safeguard, socials } from "./content";
-import { CheckIcon, CopyIcon, MoonIcon, PlatformIcon, SunIcon, type PlatformIconName } from "./Icons";
+import { about, coreSkills, intro, person, safeguard, socials } from "./content";
+import { CheckIcon, ChevronIcon, CopyIcon, MoonIcon, SunIcon } from "./Icons";
+import WorkFeed from "./WorkFeed";
+import { SkillGlyph } from "./SkillIcons";
+import { ConceptGlyph } from "./Icons";
 import { SocialIcon } from "./SocialIcons";
 import BrandLogo from "./BrandLogo";
 
@@ -19,9 +22,12 @@ const views: { id: ViewId; label: string; href: string }[] = [
 // Motion: the leaving panel fades and slides for EXIT_MS, then the next one settles in over
 // ENTER_MS. Direction follows the tab order: a later tab arrives from the right, an earlier
 // one from the left. The sign is taken from the panel on screen, not the last selection.
-const EXIT_MS = 110;
-const ENTER_MS = 220;
-const ENTER_TRAVEL = 24;
+const EXIT_MS = 130;
+const ENTER_MS = 300;
+const ENTER_TRAVEL = 28;
+const SWIPE_TRAVEL = 56;
+const SWIPE_COMMIT = 0.32;
+const SWIPE_FLICK = 0.55; // px per ms
 const EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
 const THEME_COLOR: Record<Theme, string> = { light: "#f5e9dc", dark: "#101113" };
 
@@ -31,13 +37,6 @@ function viewFromHash(hash: string): ViewId {
   const id = hash.replace(/^#\/?/, "");
   return views.some((v) => v.id === id) ? (id as ViewId) : "home";
 }
-
-const platformIcons: Record<string, PlatformIconName> = {
-  Web: "web",
-  Desktop: "desktop",
-  CLI: "cli",
-  MCP: "mcp",
-};
 
 function Socials() {
   return (
@@ -52,24 +51,6 @@ function Socials() {
         )}
       </For>
     </ul>
-  );
-}
-
-function Chip(props: {
-  href: string;
-  label: string;
-  icon?: PlatformIconName;
-  logo?: string;
-  ariaLabel?: string;
-}) {
-  return (
-    <a class="chip" href={props.href} target="_blank" rel="noopener" aria-label={props.ariaLabel}>
-      <Show when={props.icon}>{(name) => <PlatformIcon name={name()} />}</Show>
-      <Show when={props.logo}>
-        <img src={props.logo} alt="" width="16" height="16" loading="lazy" decoding="async" />
-      </Show>
-      {props.label}
-    </a>
   );
 }
 
@@ -115,9 +96,15 @@ export default function App() {
   // +1 when `next` sits to the right of the panel on screen, -1 when it sits to the left.
   const directionTo = (next: ViewId): 1 | -1 => (order(next) > order(shownId) ? 1 : -1);
 
+  // The views block keeps its height across a change so the footer glides instead of
+  // jumping: the old height is measured before the swap and animated to the new one.
+  let heightFrom: number | undefined;
+  let heightAnim: Animation | undefined;
+
   function commit() {
     swapTimer = undefined;
     if (selectedId === shownId) return;
+    heightFrom = viewsEl?.offsetHeight;
     animateEnter = !instant && !reducedMotion();
     enterDir = directionTo(selectedId);
     shownId = selectedId;
@@ -218,6 +205,19 @@ export default function App() {
       document.documentElement.dataset.view = view;
       enterAnimation?.cancel();
       enterAnimation = undefined;
+      if (viewsEl && heightFrom !== undefined) {
+        const h0 = heightFrom;
+        heightFrom = undefined;
+        heightAnim?.cancel();
+        viewsEl.style.minHeight = "";
+        const h1 = viewsEl.offsetHeight;
+        if (Math.abs(h1 - h0) > 1 && !reducedMotion()) {
+          heightAnim = viewsEl.animate([{ minHeight: h0 + "px" }, { minHeight: h1 + "px" }], {
+            duration: ENTER_MS + 60,
+            easing: EASE_OUT,
+          });
+        }
+      }
       const el = panelEls[view];
       if (!animateEnter || !el) return;
       animateEnter = false;
@@ -226,12 +226,13 @@ export default function App() {
           {
             opacity: 0,
             transform: "translateX(" + enterDir * ENTER_TRAVEL + "px)",
-            filter: "blur(4px)",
+            filter: "blur(8px)",
           },
           { opacity: 1, transform: "none", filter: "blur(0)" },
         ],
         { duration: ENTER_MS, easing: EASE_OUT },
       );
+      enterAnimation.onfinish = () => (enterAnimation = undefined);
     },
   );
 
@@ -281,6 +282,11 @@ export default function App() {
         setShown(initial);
       }
       history.scrollRestoration = "auto";
+      try {
+        if (localStorage.getItem("swiped")) document.documentElement.dataset.swiped = "";
+      } catch {
+        /* storage unavailable */
+      }
 
       const onPop = () => select(viewFromHash(location.hash), { push: false });
       const scheme = matchMedia("(prefers-color-scheme: dark)");
@@ -347,6 +353,210 @@ export default function App() {
   const mailto = "mailto:" + person.email;
   const panelClass = (id: ViewId) =>
     "panel" + (shown() === id && selected() !== id ? " is-leaving" : "");
+  // Swipe between views with a finger or pen. The panel follows the drag: it slides, fades
+  // and blurs in proportion to the distance while the neighbour slides in from the far side,
+  // so the motion is driven by the hand, not a timer. Letting go past a third of the width,
+  // or a flick, commits; otherwise both settle back. At the first or last view the panel
+  // only gives a little, like a rubber band.
+  type Drag = {
+    id: number;
+    x0: number;
+    y0: number;
+    w: number;
+    active: boolean;
+    dir: 1 | -1;
+    target?: ViewId;
+    lastX: number;
+    lastT: number;
+    v: number;
+    p: number;
+  };
+  let drag: Drag | undefined;
+  let settle: Animation[] = [];
+
+  const neighbour = (dir: 1 | -1): ViewId | undefined => views[order(shownId) + dir]?.id;
+
+  function styleDrag(p: number) {
+    if (!drag) return;
+    const cur = panelEls[shownId];
+    const tgt = drag.target ? panelEls[drag.target] : undefined;
+    const sign = -drag.dir;
+    if (!cur) return;
+    if (!tgt) {
+      cur.style.transform = "translateX(" + sign * p * drag.w * 0.16 + "px)";
+      return;
+    }
+    // The underline moves between the two tabs with the finger.
+    const a = tabEls[shownId];
+    const b = drag.target ? tabEls[drag.target] : undefined;
+    if (a && b && indicator) {
+      indicator.classList.add("is-instant");
+      indicator.style.setProperty("--x", a.offsetLeft + (b.offsetLeft - a.offsetLeft) * p + "px");
+      indicator.style.setProperty("--w", a.offsetWidth + (b.offsetWidth - a.offsetWidth) * p + "px");
+    }
+    const fade = Math.min(1, p * 1.25);
+    cur.style.transform = "translateX(" + sign * p * SWIPE_TRAVEL + "px)";
+    cur.style.opacity = String(1 - fade);
+    cur.style.filter = "blur(" + (p * 8).toFixed(2) + "px)";
+    tgt.style.transform = "translateX(" + -sign * (1 - p) * SWIPE_TRAVEL + "px)";
+    tgt.style.opacity = String(fade);
+    tgt.style.filter = "blur(" + ((1 - p) * 8).toFixed(2) + "px)";
+  }
+
+  function clearDragStyles(el?: HTMLElement) {
+    if (!el) return;
+    el.style.transform = "";
+    el.style.opacity = "";
+    el.style.filter = "";
+    el.style.position = "";
+    el.style.inset = "";
+    el.style.display = "";
+    el.style.pointerEvents = "";
+  }
+
+  function onViewsPointerDown(event: PointerEvent) {
+    if (event.pointerType === "mouse" || !event.isPrimary || swapTimer || drag) return;
+    if (enterAnimation && enterAnimation.playState === "running") return;
+    const el = viewsEl;
+    if (!el) return;
+    drag = {
+      id: event.pointerId,
+      x0: event.clientX,
+      y0: event.clientY,
+      w: el.clientWidth,
+      active: false,
+      dir: 1,
+      lastX: event.clientX,
+      lastT: event.timeStamp,
+      v: 0,
+      p: 0,
+    };
+  }
+
+  function onViewsPointerMove(event: PointerEvent) {
+    if (!drag || event.pointerId !== drag.id) return;
+    const dx = event.clientX - drag.x0;
+    const dy = event.clientY - drag.y0;
+    if (!drag.active) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+        drag = undefined; // a vertical scroll
+        return;
+      }
+      if (Math.abs(dx) < 12) return;
+      drag.active = true;
+      drag.dir = dx < 0 ? 1 : -1;
+      drag.target = neighbour(drag.dir);
+      settle.forEach((a) => a.cancel());
+      settle = [];
+      viewsEl?.setPointerCapture(event.pointerId);
+      viewsEl?.setAttribute("data-dragging", "");
+      const tgt = drag.target ? panelEls[drag.target] : undefined;
+      if (tgt) {
+        tgt.style.display = "block";
+        tgt.style.position = "absolute";
+        tgt.style.inset = "0 0 auto 0";
+        tgt.style.pointerEvents = "none";
+        // Hold the taller of the two heights so the footer stays put while dragging.
+        if (viewsEl) {
+          heightAnim?.cancel();
+          viewsEl.style.minHeight = Math.max(viewsEl.offsetHeight, tgt.offsetHeight) + "px";
+        }
+      }
+    }
+    if ((dx < 0 && drag.dir !== 1) || (dx > 0 && drag.dir !== -1)) {
+      // Reversed past the start: hold at rest in this direction.
+      drag.p = 0;
+      styleDrag(0);
+      return;
+    }
+    const dt = Math.max(1, event.timeStamp - drag.lastT);
+    drag.v = (event.clientX - drag.lastX) / dt;
+    drag.lastX = event.clientX;
+    drag.lastT = event.timeStamp;
+    drag.p = Math.min(1, Math.abs(dx) / drag.w);
+    styleDrag(drag.p);
+  }
+
+  function onViewsPointerEnd(event: PointerEvent) {
+    if (!drag || event.pointerId !== drag.id) return;
+    const d = drag;
+    drag = undefined;
+    if (!d.active) return;
+    viewsEl?.removeAttribute("data-dragging");
+    const cur = panelEls[shownId];
+    const tgt = d.target ? panelEls[d.target] : undefined;
+    const sign = -d.dir;
+    const flick = Math.abs(d.v) > SWIPE_FLICK && Math.sign(d.v) === sign;
+    const commitSwipe = !!tgt && event.type !== "pointercancel" && (d.p > SWIPE_COMMIT || flick);
+    const ms = reducedMotion() ? 0 : commitSwipe ? 240 : 280;
+    if (!cur) return;
+    // Let the underline glide to its resting place from wherever the finger left it.
+    if (indicator && d.target) {
+      indicator.classList.remove("is-instant");
+      const to = tabEls[commitSwipe ? d.target : shownId];
+      if (to) {
+        indicator.style.setProperty("--x", to.offsetLeft + "px");
+        indicator.style.setProperty("--w", to.offsetWidth + "px");
+      }
+    }
+    if (commitSwipe && tgt && d.target) {
+      const target = d.target;
+      document.documentElement.dataset.swiped = "";
+      try {
+        localStorage.setItem("swiped", "1");
+      } catch {
+        /* storage unavailable */
+      }
+      const a = cur.animate(
+        [{ transform: "translateX(" + sign * SWIPE_TRAVEL * 1.4 + "px)", opacity: 0, filter: "blur(8px)" }],
+        { duration: ms, easing: EASE_OUT, fill: "forwards" },
+      );
+      const b = tgt.animate([{ transform: "none", opacity: 1, filter: "blur(0)" }], {
+        duration: ms,
+        easing: EASE_OUT,
+        fill: "forwards",
+      });
+      settle = [a, b];
+      b.onfinish = () => {
+        settle = [];
+        a.cancel();
+        b.cancel();
+        clearDragStyles(cur);
+        clearDragStyles(tgt);
+        cur.style.display = "none";
+        tgt.style.display = "block";
+        select(target, { instant: true });
+        requestAnimationFrame(() => {
+          cur.style.display = "";
+          tgt.style.display = "";
+        });
+      };
+      return;
+    }
+    const a = cur.animate([{ transform: "none", opacity: 1, filter: "blur(0)" }], {
+      duration: ms,
+      easing: EASE_OUT,
+      fill: "forwards",
+    });
+    const list = [a];
+    if (tgt) {
+      list.push(
+        tgt.animate(
+          [{ transform: "translateX(" + -sign * SWIPE_TRAVEL + "px)", opacity: 0, filter: "blur(8px)" }],
+          { duration: ms, easing: EASE_OUT, fill: "forwards" },
+        ),
+      );
+    }
+    settle = list;
+    a.onfinish = () => {
+      settle = [];
+      list.forEach((x) => x.cancel());
+      clearDragStyles(cur);
+      clearDragStyles(tgt);
+      if (viewsEl) viewsEl.style.minHeight = "";
+    };
+  }
+
   const viewLink = (id: ViewId) => (event: MouseEvent) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
@@ -414,7 +624,16 @@ export default function App() {
         </div>
       </header>
 
-      <main id="main" class="views" tabindex={-1} ref={viewsEl}>
+      <main
+        id="main"
+        class="views"
+        tabindex={-1}
+        ref={viewsEl}
+        onPointerDown={onViewsPointerDown}
+        onPointerMove={onViewsPointerMove}
+        onPointerUp={onViewsPointerEnd}
+        onPointerCancel={onViewsPointerEnd}
+      >
         <section
           id="panel-home"
           class={panelClass("home")}
@@ -424,6 +643,12 @@ export default function App() {
           ref={(el) => (panelEls.home = el)}
         >
           <div class="hero">
+            <div class="swipe-hint" aria-hidden="true">
+              <span class="swipe-hint-pill">
+                <ChevronIcon />
+                Swipe
+              </span>
+            </div>
             <h1 class="role">
               {person.role} at{" "}
               <a href={safeguard.url} target="_blank" rel="noopener">
@@ -455,111 +680,9 @@ export default function App() {
         >
           <div class="section-head">
             <h2>Work</h2>
-            <p>From ordering and checkout flows to the systems that run AI agents.</p>
+            <p>Three roles, read the way my agents would.</p>
           </div>
-
-          <ol class="rows">
-            <li class="row">
-              <div class="row-head">
-                <img src={safeguard.logo} alt="" width="28" height="28" />
-                <h3>
-                  <a href={safeguard.url} target="_blank" rel="noopener">
-                    {safeguard.name}
-                  </a>
-                  <span>Founding engineer</span>
-                </h3>
-                <span class="when">Now</span>
-              </div>
-              <p>
-                {safeguard.description} {safeguard.summary}
-              </p>
-              <ul class="notes">
-                <For each={safeguard.highlights}>{(note) => <li>{note}</li>}</For>
-              </ul>
-              <ul class="chips" aria-label="Safeguard platforms">
-                <For each={safeguard.platforms}>
-                  {(platform) => (
-                    <Show
-                      when={"url" in platform && platform.url}
-                      fallback={
-                        <>
-                          <li>
-                            <Chip
-                              href={(platform as any).ios}
-                              label="iOS"
-                              icon="ios"
-                              ariaLabel="Safeguard for iOS on the App Store"
-                            />
-                          </li>
-                          <li>
-                            <Chip
-                              href={(platform as any).android}
-                              label="Android"
-                              icon="android"
-                              ariaLabel="Safeguard for Android on Google Play"
-                            />
-                          </li>
-                        </>
-                      }
-                    >
-                      <li>
-                        <Chip
-                          href={(platform as any).url}
-                          label={platform.name}
-                          icon={platformIcons[platform.name]}
-                          ariaLabel={"Safeguard " + platform.name + ": " + platform.description}
-                        />
-                      </li>
-                    </Show>
-                  )}
-                </For>
-                <li>
-                  <Chip
-                    href="https://docs.safeguard.sh"
-                    label="Docs"
-                    icon="docs"
-                    ariaLabel="Safeguard documentation"
-                  />
-                </li>
-              </ul>
-            </li>
-
-            <For each={previousWork}>
-              {(company) => (
-                <li class="row">
-                  <div class="row-head">
-                    <img src={company.logo} alt="" width="28" height="28" />
-                    <h3>
-                      <a href={company.url} target="_blank" rel="noopener">
-                        {company.name}
-                      </a>
-                      <span>{company.role}</span>
-                    </h3>
-                    <span class="when">{company.period}</span>
-                  </div>
-                  <p>{company.description}</p>
-                  <ul class="notes">
-                    <For each={company.highlights}>{(note) => <li>{note}</li>}</For>
-                  </ul>
-                  <ul class="chips" aria-label={company.name + " projects"}>
-                    <For each={company.projects}>
-                      {(project) => (
-                        <li>
-                          <Chip
-                            href={project.url}
-                            label={project.name}
-                            logo={"logo" in project ? project.logo : undefined}
-                            icon={"icon" in project ? project.icon : undefined}
-                            ariaLabel={project.name + ", " + project.kind.toLowerCase()}
-                          />
-                        </li>
-                      )}
-                    </For>
-                  </ul>
-                </li>
-              )}
-            </For>
-          </ol>
+          <WorkFeed active={() => shown() === "work"} />
         </section>
 
         <section
@@ -579,7 +702,7 @@ export default function App() {
           </div>
           <div class="section-head skills-head">
             <h2>Skills</h2>
-            <p>Tools and systems I've used in shipped work.</p>
+            <p>What I reach for every day.</p>
           </div>
           <dl class="skills">
             <For each={coreSkills}>
@@ -588,7 +711,26 @@ export default function App() {
                   <dt>{group.label}</dt>
                   <dd>
                     <ul class="chips chips-static">
-                      <For each={group.skills}>{(skill) => <li>{skill}</li>}</For>
+                      <For each={group.skills}>
+                        {(skill) => (
+                          <li>
+                            <Show when={skill.glyph}>
+                              <span class="chip-glyph" aria-hidden="true">
+                                <SkillGlyph name={skill.glyph!} />
+                              </span>
+                            </Show>
+                            <Show when={skill.concept}>
+                              <span class="chip-glyph" aria-hidden="true">
+                                <ConceptGlyph name={skill.concept!} />
+                              </span>
+                            </Show>
+                            <Show when={skill.img}>
+                              <img src={skill.img} alt="" width="16" height="16" loading="lazy" decoding="async" />
+                            </Show>
+                            {skill.name}
+                          </li>
+                        )}
+                      </For>
                     </ul>
                   </dd>
                 </div>
@@ -642,10 +784,20 @@ export default function App() {
       </main>
 
       <footer class="foot">
-        <span>{person.name}</span>
-        <a href="https://github.com/nayan-dey/Nayan-homepage" target="_blank" rel="noopener">
-          Source on GitHub
-        </a>
+        <span class="foot-name">
+          {person.name}
+          <span class="foot-sep" aria-hidden="true">
+            ·
+          </span>
+          {new Date().getFullYear()}
+        </span>
+        <nav class="foot-links" aria-label="Footer">
+          <a href="https://github.com/nayan-dey/Nayan-homepage" target="_blank" rel="noopener">
+            <SocialIcon name="GitHub" />
+            Source
+          </a>
+          <a href={mailto}>Email</a>
+        </nav>
       </footer>
     </div>
   );

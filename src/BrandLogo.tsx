@@ -24,6 +24,7 @@ const A_RIGHT = { "--rest": "158px", "--final": "229px", "--ko": 1, "--kc": 1 };
 const N_RIGHT = { "--rest": "164px", "--final": "328px", "--ko": 0, "--kc": 2 };
 
 const HOLD_MS = 1400;
+let arrived = false; // the arrival plays once per page, whatever remounts
 
 export default function BrandLogo() {
   let mark: SVGSVGElement | undefined;
@@ -35,6 +36,8 @@ export default function BrandLogo() {
     () => undefined,
     () => {
       // Arrival: let the prerendered single N paint, open the name once, then fold it back.
+      if (arrived) return;
+      arrived = true;
       firstFrame = requestAnimationFrame(() => {
         secondFrame = requestAnimationFrame(() => {
           mark?.setAttribute("data-open", "");

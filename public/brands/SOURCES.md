@@ -8,3 +8,9 @@
 - foodcomet.png: https://play-lh.googleusercontent.com/p75HvRoHI53OnlDyHXU4Osk1aVsdh8Okuwk1aZjXvDt-fuSFguGKutwduB5UgWQve2wV6f9D5Hburc9dH69_9w=s128
 - tbn.png: https://play-lh.googleusercontent.com/narJ0JgIoWzBOGRmsqoVyx8cnKRpD0mE4fTPdHWgqgsqJ5cHHD03Q3Yu2Wvz68twVeeiWq_lEIJVBqA5TstL=s128
 - vegio.png: https://play-lh.googleusercontent.com/9T7Qs8_TaV0VRu9JwkCcwoaiCMXOS-qFi9p5ajIwTvBpb0S5xIltWQW63xZc6mD8LAXsYliWG97zM_Y-lKyE=s128
+
+- safeguard-monogram.svg: https://safeguard.sh/brand/safeguard-monogram.svg
+- safeguard-mobile.png: Google Play listing icon for safeguard.sh (https://play.google.com/store/apps/details?id=safeguard.sh), 128px
+- ../agents/claude.svg, chatgpt.svg, cursor.svg, copilot.svg, gemini.svg: https://safeguard.sh/agents/*-icon.svg, the agent marks Safeguard shows on its own site. Trademarks belong to Anthropic, OpenAI, Anysphere, GitHub and Google.
+- ../skills/t3.png: T3 Code app icon, https://github.com/pingdotgg/t3code/blob/main/assets/prod/black-ios-1024.png, resized to 64px
+- ../skills/devin.png, acp.png, cve.png, first.png, cyclonedx.png: site favicons for devin.ai, agentclientprotocol.com, cve.org, first.org and cyclonedx.org at 64px
