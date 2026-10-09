@@ -185,16 +185,24 @@ export default function WorkFeed(props: { active: () => boolean }) {
     timer = setTimeout(() => step(0), 360);
   }
 
+  // Prerendered finished for readers without JavaScript. On the client, a visit that lands
+  // elsewhere arms the run straight away (everything pending, nothing moving), so a swipe
+  // into Work reveals the start of the session rather than the finished page that then
+  // rewinds. Landing on Work plays at once.
   createEffect(
     () => props.active(),
     (active) => {
       if (active && !played) play();
+      else if (!active && !played && done() === Infinity && !reduced()) {
+        setDone(-1);
+        setWords(0);
+      }
     },
   );
 
   const summary = () => {
     const item = current();
-    if (!item) return "Thought for " + feed.thought.seconds + "s · " + stepCount + " steps";
+    if (!item) return done() === -1 ? "Thinking" : "Thought for " + feed.thought.seconds + "s · " + stepCount + " steps";
     if (item.kind === "thought") return "Thinking";
     if (item.kind === "activity") return feed.turns[item.turn].activities[item.index].label;
     return "Writing";

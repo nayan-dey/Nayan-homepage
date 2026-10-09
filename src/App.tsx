@@ -415,7 +415,7 @@ export default function App() {
   }
 
   function onViewsPointerDown(event: PointerEvent) {
-    if (event.pointerType === "mouse" || !event.isPrimary || swapTimer || drag) return;
+    if (event.pointerType === "mouse" || !event.isPrimary || swapTimer || drag || settle.length) return;
     if (enterAnimation && enterAnimation.playState === "running") return;
     const el = viewsEl;
     if (!el) return;
@@ -448,6 +448,7 @@ export default function App() {
       drag.target = neighbour(drag.dir);
       settle.forEach((a) => a.cancel());
       settle = [];
+      for (const id of Object.keys(panelEls) as ViewId[]) clearDragStyles(panelEls[id]);
       viewsEl?.setPointerCapture(event.pointerId);
       viewsEl?.setAttribute("data-dragging", "");
       const tgt = drag.target ? panelEls[drag.target] : undefined;
